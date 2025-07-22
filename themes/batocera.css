@@ -1,0 +1,117 @@
+/* theme/batocera.css - Tema Batocera Linux */
+.theme-batocera {
+  /* Cores principais do Batocera */
+  --bg: #000000;
+  --menu-bg: #101010;
+  --selected-bg: #2a2a2a;
+  --accent: #f8e71c; /* Amarelo dourado icônico */
+  --text: #e0e0e0;
+  --border: #333;
+
+  /* Fonte retrô */
+  --font: 'Press Start 2P', 'Courier New', monospace;
+
+  /* Efeitos */
+  --menu-shadow: 0 0 15px rgba(248, 231, 28, 0.3);
+  --item-hover: #1a1a1a;
+  --button-bg: #f8e71c;
+  --button-text: #000;
+}
+
+/* Aplicar tema ao body */
+body.theme-batocera {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  transition: background-color 0.4s ease;
+}
+
+/* Menu lateral */
+.theme-batocera .menu {
+  background: var(--menu-bg);
+  border-right: 1px solid var(--border);
+  box-shadow: var(--menu-shadow);
+}
+
+.theme-batocera .menu h2 {
+  color: var(--accent);
+  text-shadow: 0 0 10px rgba(248, 231, 28, 0.5);
+}
+
+.theme-batocera .menu-item {
+  color: var(--text);
+  border-left: 3px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.theme-batocera .menu-item:hover,
+.theme-batocera .menu-item.selected {
+  background: var(--selected-bg);
+  border-left-color: var(--accent);
+  padding-left: 15px;
+}
+
+.theme-batocera .menu-item.selected {
+  font-weight: bold;
+  color: var(--accent);
+}
+
+/* Conteúdo */
+.theme-batocera .content {
+  background: #0a0a0a;
+}
+
+.theme-batocera h2 {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  text-shadow: 0 0 8px rgba(248, 231, 28, 0.4);
+}
+
+/* Lista de jogos */
+.theme-batocera .game-list li {
+  border-bottom: 1px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+.theme-batocera .game-list li:hover {
+  background: var(--item-hover);
+  border-left: 3px solid var(--accent);
+  transform: translateX(5px);
+}
+
+/* Botões e interações */
+.theme-batocera button {
+  background: var(--button-bg);
+  color: var(--button-text);
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.theme-batocera button:hover {
+  background: #ffd300;
+  transform: scale(1.05);
+}
+
+/* Notificações */
+.theme-batocera .ra-login-notification,
+.theme-batocera .achievement-notification {
+  background: #000;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  box-shadow: 0 0 15px rgba(248, 231, 28, 0.4);
+  font-family: var(--font);
+}
+
+/* Rodapé */
+.theme-batocera .footer {
+  background: #111;
+  color: var(--accent);
+  border-top: 1px solid var(--accent);
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+}

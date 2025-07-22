@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Carregando...</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      color: #00ffcc;
+      font-family: 'Courier New', monospace;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .loader-container {
+      width: 100%;
+    }
+
+    .terminal-line {
+      white-space: pre;
+      overflow: hidden;
+      border-right: 2px solid #00ffcc;
+      font-size: 1.5rem;
+      line-height: 1.5;
+      animation: typing 3s steps(30, end) forwards, blink-caret 500ms step-end infinite;
+    }
+
+    .loader-text {
+      font-size: 1.5rem;
+      animation: blink 1s infinite;
+      margin-top: 20px;
+      display: block;
+    }
+
+    @keyframes typing {
+      from { width: 0 }
+      to { width: 100% }
+    }
+
+    @keyframes blink-caret {
+      from, to { border-color: transparent }
+      50% { border-color: #00ffcc }
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
+</head>
+<body>
+  <div class="loader-container">
+    <div class="terminal-line">[BOOTING SYSTEM...]</div>
+    <div class="terminal-line">Loading modules [██████░░░░] 100%</div>
+    <div class="loader-text">🎮 Aguarde enquanto carregamos seu jogo...</div>
+  </div>
+</body>
+</html>
