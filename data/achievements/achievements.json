@@ -1,0 +1,16 @@
+[
+  {
+    "id": "ach_001",
+    "name": "Primeira Vitória",
+    "description": "Complete o primeiro nível.",
+    "icon": "trophy.png",
+    "unlocked": false
+  },
+  {
+    "id": "ach_002",
+    "name": "Mestre dos Controles",
+    "description": "Use todos os botões do controle.",
+    "icon": "controller.png",
+    "unlocked": false
+  }
+]
