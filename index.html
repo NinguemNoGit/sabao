@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Retrocast - Modo Retrô</title>
+  <title>Retrocast - Modo Batocera</title>
   <!-- Fonte Retrô -->
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <!-- Favicon -->
+  <link rel="icon" href="https://emulatorjs.org/img/logo.png" type="image/png">
   <!-- Estilo Retrô -->
   <style>
     :root {
@@ -33,6 +35,10 @@
       box-shadow: 2px 0 10px rgba(0,0,0,0.7);
       overflow-y: auto;
       border-right: 1px solid #222;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
     }
     .menu h2 {
       text-align: center;
@@ -62,6 +68,12 @@
       padding: 2rem;
       overflow-y: auto;
       background: #111;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
     }
     h2 {
       margin-top: 0;
@@ -88,12 +100,14 @@
       border-left: 3px solid var(--accent);
       padding-left: 1.2rem;
     }
+    /* Ícone de Troféu */
     .game-list li img.trophy-icon {
       vertical-align: middle;
       margin-right: 10px;
       width: 20px;
       height: auto;
     }
+    /* Notificação de Login */
     .ra-login-notification {
       position: fixed;
       z-index: 99999;
@@ -108,6 +122,7 @@
       opacity: 1;
       transition: opacity 0.5s ease;
     }
+    /* Notificação de Conquista */
     .achievement-notification {
       position: fixed;
       z-index: 99999;
@@ -122,12 +137,14 @@
       opacity: 1;
       transition: opacity 0.5s ease;
     }
+    /* Posições da notificação */
     .pos-top-left { top: 20px; left: 20px; right: auto; }
     .pos-top-center { top: 20px; left: 50%; transform: translateX(-50%); }
     .pos-top-right { top: 20px; right: 20px; }
     .pos-bottom-left { bottom: 20px; left: 20px; top: auto; }
     .pos-bottom-center { bottom: 20px; left: 50%; transform: translateX(-50%); }
     .pos-bottom-right { bottom: 20px; right: 20px; top: auto; }
+    /* Configurações de Conquistas */
     .ra-settings {
       margin-top: 1rem;
       display: flex;
@@ -139,13 +156,13 @@
       align-items: center;
       gap: 0.5rem;
     }
+    /* Tema Claro */
     body.light-mode {
       --bg: #f0f0f0;
       --menu-bg: #e0e0e0;
       --selected-bg: #d0d0d0;
       --accent: #0000cc;
       --text: #000000;
-      --font: 'Courier New', monospace;
     }
     .footer {
       position: fixed;
@@ -159,14 +176,25 @@
       border-top: 1px solid #222;
     }
   </style>
+
+  <!-- Variáveis do EmulatorJS (OBRIGATÓRIO antes do loader.js) -->
+  <script>
+    window.EJS_player = "#game";
+    window.EJS_core = "";
+    window.EJS_gameUrl = "";
+    window.EJS_pathtodata = "data/";
+    window.EJS_startOnLoaded = false;
+  </script>
+
+  <!-- API JS Oficial do RetroAchievements -->
+  <script src="https://unpkg.com/@retroachievements/api/dist/bundles/web-vanilla/global.js" defer></script>
+
   <!-- Script do EmulatorJS -->
   <script src="data/loader.js"></script>
+
   <!-- Scripts de Conquistas -->
   <script src="data/achievements/scripts/md5.js" defer></script>
-  <script src="data/achievements/scripts/achievements.js" defer></script>
   <script src="data/achievements/scripts/notify.js" defer></script>
-  <script src="data/achievements/scripts/retroachievements-api.js" defer></script>
-  <script src="data/achievements/scripts/unlock.js" defer></script>
 </head>
 <body>
   <!-- Menu Lateral -->
@@ -187,11 +215,11 @@
     <div id="section-content"></div>
   </div>
   <!-- Tela de Carregamento -->
-  <div id="display" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:black; z-index:9999; justify-content:center; align-items:center;">
+  <div id="display" style="display:none; position:absolute; top:0; left:0; width:100vw; height:100vh; background:black; z-index:2; justify-content:center; align-items:center;">
     <div id="loading-content" style="text-align:center; color:#00ffcc;"></div>
   </div>
   <!-- Div onde o jogo vai rodar -->
-  <div id="game" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh;"></div>
+  <div id="game" style="display:none; position:absolute; top:0; left:0; width:100vw; height:100vh; z-index:3;"></div>
   <!-- Rodapé opcional -->
   <div class="footer">
     Powered Retrocast Brasil v1.0 • Nostalgia sem Limites
@@ -208,7 +236,7 @@
     let raToken = localStorage.getItem("ra_api_key") || "";
 
     // === DADOS DO PERFIL NA NUVEM ===
-    const API_URL = "http://localhost:4000/api"; // ⚠️ Altere para seu servidor real
+    const API_URL = "http://localhost:4000/api";
     let userData = {
       name: localStorage.getItem("profile_name") || "",
       avatar: localStorage.getItem("profile_avatar") || "data/default-avatar.png",
@@ -222,28 +250,8 @@
     };
     let socket = null;
 
-    // === FUNÇÃO DE TEMA ===
-    function changeTheme(theme) {
-      document.querySelectorAll('link[data-theme]').forEach(el => el.remove());
-      document.body.classList.remove('light-mode');
-
-      localStorage.setItem('ra_theme', theme);
-
-      if (theme === 'light') {
-        document.body.classList.add('light-mode');
-      } else if (theme === 'batocera') {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.type = 'text/css';
-        link.href = 'theme/batocera.css';
-        link.setAttribute('data-theme', 'true');
-        document.head.appendChild(link);
-        document.body.classList.remove('light-mode');
-      } else {
-        document.body.classList.remove('light-mode');
-      }
-      showNotification('info', `🎨 Tema: ${theme === 'batocera' ? 'Batocera' : theme === 'light' ? 'Claro' : 'Escuro'}`);
-    }
+    // === SOM PERSONALIZADO ===
+    let customSoundURL = null;
 
     function loadSection(section) {
       sectionTitle.textContent = getSectionTitle(section);
@@ -265,43 +273,58 @@
             </ul>
           `;
           break;
+
         case "achievements":
           sectionContent.innerHTML = `
             <h3>🎖️ RetroAchievements</h3>
+            <!-- Login -->
             <form id="ra-login-form">
               <input type="text" id="ra-username" placeholder="Nome de usuário" value="${raUser}" required />
               <input type="password" id="ra-apikey" placeholder="Sua API Key" value="${raToken}" required />
+              <small style="display:block; margin:0.5rem 0; font-size:0.8rem; color:#00ffcc;">
+                🔐 Obtenha em: <a href="https://retroachievements.org/developer.php" target="_blank" style="color:#00ffcc;">developer.php</a>
+              </small>
               <button type="button" onclick="loginToRetroAchievements()">Entrar</button>
               <button type="button" onclick="logoutFromRetroAchievements()">Sair</button>
             </form>
+
+            <!-- Informações do usuário -->
             <div class="ra-header">
               <div class="ra-user" id="ra-user-info">${raUser ? 'Usuário: ' + raUser : 'Usuário: Não logado'}</div>
               <div class="ra-game" id="ra-game-title">Jogo: Nenhum carregado</div>
             </div>
             <div class="ra-progress" id="ra-game-progress">Progresso: 0/0</div>
+
+            <!-- Configurações -->
             <div class="ra-settings">
-              <label><input type="checkbox" id="ra-enable" onclick="toggleAchievementVisibility()" ${localStorage.getItem("ra_enable") !== "false" ? "checked" : ""}> 🎮 Conquistas Ativadas</label>
-              <label><input type="checkbox" id="ra-hardcore" onclick="toggleHardcoreMode()" ${localStorage.getItem("ra_hardcore") === "true" ? "checked" : ""}> 🎮 Modo Hardcore</label>
-              <label><input type="checkbox" id="ra-sound" onclick="toggleSound()" ${localStorage.getItem("ra_sound") !== "false" ? "checked" : ""}> 🔊 Som</label>
-              <label><input type="checkbox" id="ra-screenshot" onclick="toggleScreenshot()" ${localStorage.getItem("ra_screenshot") === "true" ? "checked" : ""}> 📸 Tirar captura</label>
-              <label><input type="checkbox" id="ra-unofficial" onclick="toggleUnofficial()" ${localStorage.getItem("ra_unofficial") === "true" ? "checked" : ""}> 🧪 Mostrar não oficiais</label>
-              <label><input type="checkbox" id="ra-richpresence" onclick="toggleRichPresence()" ${localStorage.getItem("ra_richpresence") === "true" ? "checked" : ""}> 💬 Rich Presence</label>
-              <label>
-                🎨 Tema:
-                <select id="theme-select" onchange="changeTheme(this.value)">
-                  <option value="dark" ${localStorage.getItem('ra_theme') === 'dark' ? 'selected' : ''}>Tema Escuro</option>
-                  <option value="light" ${localStorage.getItem('ra_theme') === 'light' ? 'selected' : ''}>Tema Claro</option>
-                  <option value="batocera">Tema Batocera</option>
-                </select>
-              </label>
+              <label><input type="checkbox" id="ra-enable" ${localStorage.getItem("ra_enable") !== "false" ? "checked" : ""}> 🎮 Conquistas Ativadas</label>
+              <label><input type="checkbox" id="ra-hardcore" ${localStorage.getItem("ra_hardcore") === "true" ? "checked" : ""}> 🎮 Modo Hardcore</label>
+              <label><input type="checkbox" id="ra-sound" ${localStorage.getItem("ra_sound") !== "false" ? "checked" : ""}> 🔊 Som ativado</label>
+              <label><input type="checkbox" id="ra-screenshot" ${localStorage.getItem("ra_screenshot") === "true" ? "checked" : ""}> 📸 Tirar captura</label>
+              <label><input type="checkbox" id="ra-unofficial" ${localStorage.getItem("ra_unofficial") === "true" ? "checked" : ""}> 🧪 Mostrar conquistas não oficiais</label>
+              <label><input type="checkbox" id="ra-richpresence" ${localStorage.getItem("ra_richpresence") === "true" ? "checked" : ""}> 💬 Mostrar Rich Presence</label>
+
+              <!-- Upload de som personalizado -->
+              <div style="margin-top: 1rem; padding: 0.8rem; background: #222; border-radius: 6px;">
+                <h4>🎵 Som de Conquista Personalizado</h4>
+                <input type="file" id="ra-sound-upload" accept="audio/mp3,audio/wav,audio/ogg" style="margin-bottom: 0.5rem;" />
+                <button type="button" onclick="uploadCustomSound()">📤 Carregar Som</button>
+                <div id="ra-sound-status" style="margin-top: 0.5rem; font-size: 0.9rem; color: #00ffcc;"></div>
+              </div>
+
+              <!-- Botões -->
+              <button onclick="showAppearanceMenu()">🎛️ Aparência</button>
               <button onclick="simulateUnlock()">🧪 Testar Conquista</button>
             </div>
+
+            <!-- Lista de conquistas -->
             <div id="ra-achievements-list">
               <p>🔍 Faça login para carregar as conquistas.</p>
             </div>
           `;
           initRetroAchievements();
           break;
+
         case "profile":
           loadProfileSection();
           break;
@@ -363,11 +386,9 @@
 
     async function hasAchievementsForGame(gameName) {
       if (!raUser || !raToken) return false;
-      const url = `https://retroachievements.org/API/GetGameID.php?g=${encodeURIComponent(gameName)}&z=${raUser}&y=${raToken}`;
       try {
-        const res = await fetch(url);
-        const data = await res.json();
-        return data?.GameID ? true : false;
+        const gameId = await RA.game.getIdFromHash({ name: gameName });
+        return !!gameId;
       } catch (err) {
         console.error("Erro ao verificar conquistas:", err);
         return false;
@@ -388,12 +409,10 @@
         <div class="terminal-line">Loading modules [██████░░░░] 100%</div>
         <div class="loader-text">🎮 Aguarde enquanto carregamos seu jogo...</div>
       `;
-      window.EJS_player = "#game";
       window.EJS_gameName = gameName;
       window.EJS_biosUrl = "";
       window.EJS_gameUrl = romUrl;
       window.EJS_core = consoleName;
-      window.EJS_pathtodata = "data/";
       window.EJS_startOnLoaded = true;
 
       function startEmulator() {
@@ -419,19 +438,52 @@
       }
     }
 
-    function loginToRetroAchievements() {
+    // === INTEGRAÇÃO COM API-JS ===
+    async function initRetroAchievements() {
+      if (raUser && raToken) {
+        try {
+          await RA.init({
+            username: raUser,
+            token: raToken,
+            service: "web"
+          });
+          console.log("✅ API RA conectada");
+        } catch (err) {
+          console.error("❌ Falha na API RA:", err);
+        }
+      }
+    }
+
+    async function loginToRetroAchievements() {
       const username = document.getElementById("ra-username").value.trim();
       const apikey = document.getElementById("ra-apikey").value.trim();
-      if (username && apikey) {
-        localStorage.setItem("ra_username", username);
-        localStorage.setItem("ra_api_key", apikey);
-        raUser = username;
-        raToken = apikey;
-        document.getElementById("ra-user-info").textContent = `Usuário: ${raUser}`;
-        showNotification("success", "✅ Login feito!");
-        initRetroAchievements();
-      } else {
-        alert("Preencha ambos os campos.");
+
+      if (!username || !apikey) {
+        alert("Preencha usuário e API Key.");
+        return;
+      }
+
+      try {
+        await RA.init({
+          username,
+          token: apikey,
+          service: "web"
+        });
+
+        const user = await RA.user.get(username);
+        if (user.User) {
+          raUser = username;
+          raToken = apikey;
+          localStorage.setItem("ra_username", username);
+          localStorage.setItem("ra_api_key", apikey);
+
+          document.getElementById("ra-user-info").textContent = `Usuário: ${username}`;
+          showNotification("success", `✅ Logado como ${username}`);
+          initRetroAchievements();
+        }
+      } catch (err) {
+        console.error("Erro no login:", err);
+        showNotification("error", "❌ Falha no login. Verifique suas credenciais.");
       }
     }
 
@@ -445,6 +497,80 @@
       document.getElementById("ra-game-progress").textContent = "Progresso: 0/0";
       document.getElementById("ra-achievements-list").innerHTML = "<p>🔍 Faça login.</p>";
       showNotification("info", "Logout feito.");
+    }
+
+    // === SOM DE CONQUISTA ===
+    function uploadCustomSound() {
+      const fileInput = document.getElementById("ra-sound-upload");
+      const status = document.getElementById("ra-sound-status");
+      const file = fileInput.files[0];
+
+      if (!file) {
+        status.textContent = "❌ Nenhum arquivo selecionado.";
+        setTimeout(() => status.textContent = "", 3000);
+        return;
+      }
+
+      if (!file.type.startsWith("audio/")) {
+        status.textContent = "❌ Apenas arquivos de áudio (MP3, WAV, OGG).";
+        setTimeout(() => status.textContent = "", 3000);
+        return;
+      }
+
+      const objectURL = URL.createObjectURL(file);
+      customSoundURL = objectURL;
+      localStorage.setItem("ra_custom_sound", objectURL);
+
+      status.textContent = `✅ "${file.name}" carregado!`;
+      setTimeout(() => status.textContent = "", 5000);
+      showNotification("info", `Som personalizado carregado`);
+    }
+
+    // Carrega som salvo ao iniciar
+    window.addEventListener("load", () => {
+      const savedSound = localStorage.getItem("ra_custom_sound");
+      if (savedSound) {
+        const audio = new Audio(savedSound);
+        audio.oncanplay = () => customSoundURL = savedSound;
+        audio.onerror = () => localStorage.removeItem("ra_custom_sound");
+      }
+    });
+
+    function playUnlockSound() {
+      if (localStorage.getItem("ra_sound") === "false") return;
+
+      const sound = new Audio();
+      if (customSoundURL) {
+        sound.src = customSoundURL;
+      } else {
+        // Som padrão (opcional)
+        // sound.src = "data/achievements/sounds/unlock.mp3";
+      }
+
+      sound.volume = 0.8;
+      sound.play().catch(e => console.log("🔇 Som bloqueado (sem interação)."));
+    }
+
+    function simulateUnlock() {
+      const notif = document.createElement("div");
+      notif.className = "achievement-notification pos-bottom-right";
+      notif.innerHTML = `<b>🏆 Nova Conquista!</b><br>Teste: 10G`;
+      document.body.appendChild(notif);
+
+      playUnlockSound();
+
+      setTimeout(() => {
+        notif.style.opacity = "0";
+        setTimeout(() => notif.remove(), 500);
+      }, 5000);
+    }
+
+    function showAppearanceMenu() {
+      const currentTheme = localStorage.getItem("ra_theme") || "dark";
+      const newTheme = currentTheme === "dark" ? "light" : "dark";
+      localStorage.setItem("ra_theme", newTheme);
+      document.body.classList.toggle("light-mode", newTheme === "light");
+      showNotification("info", `Tema: ${newTheme === "light" ? "Claro" : "Escuro"}`);
     }
 
     function showNotification(type, message) {
@@ -461,36 +587,59 @@
       }, 3000);
     }
 
-    function initRetroAchievements() {
-      // Placeholder para inicialização futura
-    }
-
-    function simulateUnlock() {
-      const notif = document.createElement("div");
-      notif.className = "achievement-notification pos-bottom-right";
-      notif.innerHTML = `<b>🏆 Nova Conquista!</b><br>Teste: 10G`;
-      document.body.appendChild(notif);
-      setTimeout(() => {
-        notif.style.opacity = "0";
-        setTimeout(() => notif.remove(), 500);
-      }, 5000);
-    }
-
+    // === PERFIL ===
     function loadProfileSection() {
+      sectionTitle.textContent = "👤 Meu Perfil";
       sectionContent.innerHTML = `
-        <div class="profile-container" style="max-width: 600px; margin: 0 auto;">
-          <div style="text-align: center;">
-            <img id="profile-avatar" src="${userData.avatar}" style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid #00ffcc;">
-            <input type="file" id="avatar-upload" accept="image/*" style="display:none">
-            <button onclick="document.getElementById('avatar-upload').click()">🖼️ Alterar</button>
+        <div class="profile-container" style="max-width: 600px; margin: 0 auto; font-family: var(--font); color: var(--text);">
+          <div style="text-align: center; margin-bottom: 1.5rem;">
+            <img id="profile-avatar" src="${userData.avatar}" alt="Avatar" 
+                 style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--accent); object-fit: cover;">
+            <div style="margin-top: 0.8rem;">
+              <input type="file" id="avatar-upload" accept="image/*" style="display:none">
+              <button onclick="document.getElementById('avatar-upload').click()" 
+                      style="background: #00ffcc; color: #000; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">
+                🖼️ Alterar Avatar
+              </button>
+            </div>
           </div>
-          <input id="profile-name" value="${userData.name}" placeholder="Seu nome">
-          <button onclick="saveProfile()">💾 Salvar</button>
-          <div id="profile-stats">Carregando...</div>
-          <h3>Amigos</h3>
-          <input id="add-friend-name" placeholder="Nome">
-          <button onclick="addFriend()">➕</button>
-          <ul id="friend-list"></ul>
+          <div style="margin-bottom: 1.5rem; text-align: center;">
+            <input id="profile-name" type="text" placeholder="Seu nome de jogador" 
+                   value="${userData.name}" 
+                   style="width: 80%; max-width: 300px; padding: 0.7rem; background: #222; border: 1px solid var(--accent); color: var(--text); border-radius: 6px; text-align: center;">
+            <button onclick="saveProfile()" 
+                    style="margin-top: 0.5rem; background: var(--accent); color: #000; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; font-weight: bold;">
+              💾 Salvar Perfil
+            </button>
+          </div>
+          <div id="profile-stats" style="background: #222; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; text-align: center;">
+            <p>Carregando estatísticas...</p>
+          </div>
+          <h3>👥 Amigos</h3>
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+            <input id="add-friend-name" type="text" placeholder="Nome do amigo" 
+                   style="flex: 1; padding: 0.7rem; background: #222; border: 1px solid #444; color: var(--text); border-radius: 6px;">
+            <button onclick="addFriend()" 
+                    style="background: var(--accent); color: #000; border: none; width: 80px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+              ➕ Adicionar
+            </button>
+          </div>
+          <ul id="friend-list" style="list-style: none; padding: 0; max-height: 150px; overflow-y: auto;"></ul>
+          <h3 style="margin-top: 1.5rem;">☁️ Conta na Nuvem</h3>
+          <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+            <button onclick="loginWithGoogle()"
+                    style="background: #4285F4; color: white; border: none; padding: 0.7rem; border-radius: 6px; cursor: pointer; font-weight: bold;">
+              🔗 Vincular Google Drive
+            </button>
+            <button onclick="loginWithOneDrive()"
+                    style="background: #0078D4; color: white; border: none; padding: 0.7rem; border-radius: 6px; cursor: pointer; font-weight: bold;">
+              🔗 Vincular OneDrive
+            </button>
+            <button onclick="logoutFromCloud()"
+                    style="background: #ff3333; color: white; border: none; padding: 0.7rem; border-radius: 6px; cursor: pointer; font-weight: bold;">
+              🔐 Sair da Nuvem
+            </button>
+          </div>
         </div>
       `;
       initProfile();
@@ -554,6 +703,7 @@
       renderFriends();
     }
 
+    // === MENU E CONTROLE ===
     menuItems.forEach(item => {
       item.addEventListener("click", () => {
         menuItems.forEach(i => i.classList.remove("selected"));
@@ -562,14 +712,6 @@
       });
     });
 
-    // Carrega tema ao iniciar
-    window.addEventListener('load', () => {
-      const savedTheme = localStorage.getItem('ra_theme') || 'dark';
-      changeTheme(savedTheme);
-      document.getElementById('theme-select')?.setAttribute('value', savedTheme);
-    });
-
-    // Controle por gamepad
     if ('getGamepads' in navigator) {
       let selectedIndex = 0;
       function poll() {
