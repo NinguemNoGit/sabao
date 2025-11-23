@@ -1,0 +1,49 @@
+<h3>🎖️ RetroAchievements</h3>
+<form id="ra-login-form">
+  <input type="text" id="ra-username" placeholder="Nome de usuário" value="" required />
+  <input type="password" id="ra-apikey" placeholder="Sua API Key" value="" required />
+  <button type="button" onclick="loginToRetroAchievements()">Entrar</button>
+  <button type="button" onclick="logoutFromRetroAchievements()">Sair</button>
+</form>
+<div class="ra-header">
+  <div class="ra-user" id="ra-user-info">Usuário: Não logado</div>
+  <div class="ra-game" id="ra-game-title">Jogo: Nenhum carregado</div>
+</div>
+<div class="ra-progress" id="ra-game-progress">Progresso: 0/0</div>
+<div class="ra-settings">
+  <label><input type="checkbox" id="ra-enable"> 🎮 Conquistas Ativadas</label>
+  <label><input type="checkbox" id="ra-hardcore"> 🎮 Modo Hardcore</label>
+  <label><input type="checkbox" id="ra-sound"> 🔊 Som</label>
+  <label><input type="checkbox" id="ra-screenshot"> 📸 Tirar captura</label>
+  <label><input type="checkbox" id="ra-unofficial"> 🧪 Mostrar não oficiais</label>
+  <label><input type="checkbox" id="ra-richpresence"> 💬 Rich Presence</label>
+  <label>
+    🎨 Tema:
+    <select id="theme-select">
+      <option value="dark">Tema Escuro</option>
+      <option value="light">Tema Claro</option>
+      <option value="batocera">Tema Batocera</option>
+    </select>
+  </label>
+  <button onclick="simulateUnlock()">🧪 Testar Conquista</button>
+</div>
+<div id="ra-achievements-list">
+  <p>🔍 Faça login para carregar as conquistas.</p>
+</div>
+
+<script>
+  // Restaura valores
+  document.getElementById('ra-username').value = localStorage.getItem("ra_username") || "";
+  document.getElementById('ra-apikey').value = localStorage.getItem("ra_api_key") || "";
+  document.getElementById('ra-user-info').textContent = localStorage.getItem("ra_username") ? 
+    'Usuário: ' + localStorage.getItem("ra_username") : 'Usuário: Não logado';
+  
+  document.getElementById('ra-enable').checked = localStorage.getItem("ra_enable") !== "false";
+  document.getElementById('ra-hardcore').checked = localStorage.getItem("ra_hardcore") === "true";
+  document.getElementById('ra-sound').checked = localStorage.getItem("ra_sound") !== "false";
+  document.getElementById('ra-screenshot').checked = localStorage.getItem("ra_screenshot") === "true";
+  document.getElementById('ra-unofficial').checked = localStorage.getItem("ra_unofficial") === "true";
+  document.getElementById('ra-richpresence').checked = localStorage.getItem("ra_richpresence") === "true";
+  
+  document.getElementById('theme-select').value = localStorage.getItem('ra_theme') || 'dark';
+</script>

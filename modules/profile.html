@@ -1,0 +1,35 @@
+<div class="profile-container" style="max-width: 600px; margin: 0 auto;">
+  <div style="text-align: center;">
+    <img id="profile-avatar" src="" style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid #00ffcc;">
+    <input type="file" id="avatar-upload" accept="image/*" style="display:none">
+    <button onclick="document.getElementById('avatar-upload').click()">🖼️ Alterar</button>
+  </div>
+  <input id="profile-name" value="" placeholder="Seu nome">
+  <button onclick="saveProfile()">💾 Salvar</button>
+  <div id="profile-stats">Carregando...</div>
+  <h3>Amigos</h3>
+  <input id="add-friend-name" placeholder="Nome">
+  <button onclick="addFriend()">➕</button>
+  <ul id="friend-list"></ul>
+</div>
+
+<script>
+  // Inicializa perfil
+  document.getElementById("profile-avatar").src = localStorage.getItem("profile_avatar") || "data/default-avatar.png";
+  document.getElementById("profile-name").value = localStorage.getItem("profile_name") || "";
+  updateStatsUI();
+  renderFriends();
+  
+  document.getElementById("avatar-upload").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = evt => {
+        localStorage.setItem("profile_avatar", evt.target.result);
+        document.getElementById("profile-avatar").src = evt.target.result;
+        saveProfile();
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+</script>

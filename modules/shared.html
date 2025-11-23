@@ -1,0 +1,30 @@
+<div id="shared-ra-login">
+  <h3>🎖️ RetroAchievements</h3>
+  <form id="ra-login-form" onsubmit="loginToRetroAchievements(); return false;">
+    <input type="text" id="ra-username" placeholder="Nome de usuário" value="" required />
+    <input type="password" id="ra-apikey" placeholder="Sua API Key" value="" required />
+    <button type="submit">🔐 Entrar</button>
+    <button type="button" onclick="logoutFromRetroAchievements()">🔌 Sair</button>
+    <button type="button" onclick="showAppearanceMenu()">🎛️ Aparência</button>
+  </form>
+  <div class="ra-header">
+    <div class="ra-user" id="ra-user-info">Usuário: Não logado</div>
+    <div class="ra-game" id="ra-game-title">Jogo: Nenhum carregado</div>
+  </div>
+  <div class="ra-progress" id="ra-game-progress">Progresso: 0/0</div>
+</div>
+
+<div id="shared-ra-settings">
+  <div class="ra-settings">
+    <label><input type="checkbox" id="ra-enable"> 🎮 Conquistas Ativadas</label>
+    <label><input type="checkbox" id="ra-hardcore"> 🎮 Modo Hardcore</label>
+    <label><input type="checkbox" id="ra-sound"> 🔊 Som ativado</label>
+    <label><input type="checkbox" id="ra-screenshot"> 📸 Tirar captura</label>
+    <label><input type="checkbox" id="ra-unofficial"> 🧪 Mostrar conquistas não oficiais</label>
+    <label><input type="checkbox" id="ra-richpresence"> 💬 Mostrar Rich Presence</label>
+    <button onclick="simulateUnlock()">🧪 Testar Conquista</button>
+  </div>
+  <div id="ra-achievements-list">
+    <p>🔍 Faça login para carregar as conquistas.</p>
+  </div>
+</div>

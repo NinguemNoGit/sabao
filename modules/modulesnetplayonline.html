@@ -1,0 +1,288 @@
+<h3>🎮 Jogar Online com Amigos</h3>
+<p>Escolha como deseja jogar:</p>
+
+<div style="display: flex; flex-direction: column; gap: 0.8rem; max-width: 300px; margin: 1rem auto;">
+  <button onclick="startOfflineGame()" 
+          style="padding: 0.8rem; background: #00cc66; color: white; border: none; border-radius: 6px; cursor: pointer; font-family: var(--font); font-size: 1rem;">
+    🎮 Offline
+  </button>
+  <button onclick="showNetplayLobby()" 
+          style="padding: 0.8rem; background: #0077cc; color: white; border: none; border-radius: 6px; cursor: pointer; font-family: var(--font); font-size: 1rem;">
+    🌐 Netplay (2P)
+  </button>
+  <button onclick="goBackToConsoles()" 
+          style="padding: 0.8rem; background: #555; color: white; border: none; border-radius: 6px; cursor: pointer; font-family: var(--font); font-size: 1rem;">
+    ❌ Cancelar
+  </button>
+</div>
+
+<script>
+  // === INICIA JOGO OFFLINE ===
+  function startOfflineGame() {
+    alert("Jogando offline. Conquistas ativadas!");
+    goBackToConsoles();
+  }
+
+  // === MOSTRA LOBBY DE NETPLAY ===
+  function showNetplayLobby() {
+    const profileName = localStorage.getItem("profile_name") || prompt("Digite seu nome para jogar online:", "");
+    if (!profileName || profileName.trim() === "") {
+      alert("Nome necessário para jogar online.");
+      return;
+    }
+    localStorage.setItem("profile_name", profileName);
+
+    // Mostra lobby com opções
+    document.getElementById('section-content').innerHTML = `
+      <h4 style="margin: 1rem 0; color: #00ffcc;">🎮 Sala de Netplay</h4>
+      <div style="display: flex; gap: 0.8rem; margin-bottom: 1rem;">
+        <button onclick="createRoom('${profileName}')" 
+                style="padding: 0.6rem 1.2rem; background: #00cc66; color: white; border: none; border-radius: 4px; cursor: pointer; font-family: var(--font);">
+          🆕 Criar Sala
+        </button>
+        <button onclick="joinRoom()" 
+                style="padding: 0.6rem 1.2rem; background: #0077cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-family: var(--font);">
+          🔗 Entrar em Sala
+        </button>
+      </div>
+      <div id="room-list" style="max-height: 200px; overflow-y: auto; border: 1px solid #444; padding: 0.8rem; border-radius: 4px;">
+        <p style="color: #ffcc00;">🔍 Nenhuma sala disponível.</p>
+      </div>
+      <div style="margin-top: 1rem; text-align: center; font-size: 0.9rem; color: #ffcc00;">
+        💡 Dica: Crie uma sala ou peça o ID da sala ao seu amigo.
+      </div>
+    `;
+  }
+
+  // === CRIA SALA ===
+  function createRoom(hostName) {
+    const roomName = prompt("Digite o nome da sala:", `${hostName}'s Room`);
+    if (!roomName || roomName.trim() === "") {
+      alert("Nome da sala necessário.");
+      return;
+    }
+
+    const password = prompt("Senha (opcional):", "");
+    const maxPlayers = 2;
+
+    // Gera ID único baseado no jogo e nome
+    const roomId = btoa(roomName + Date.now()).slice(0, 8).toUpperCase();
+
+    // Salva sala no localStorage
+    const roomData = {
+      id: roomId,
+      name: roomName,
+      host: hostName,
+      password: password || "",
+      maxPlayers: maxPlayers,
+      players: [hostName],
+      game: null
+    };
+    localStorage.setItem(`netplay_room_${roomId}`, JSON.stringify(roomData));
+
+    // Mostra tela de criação
+    document.getElementById('section-content').innerHTML = `
+      <h4 style="margin: 1rem 0; color: #00ffcc;">✅ Sala Criada!</h4>
+      <div style="background: #111; padding: 1rem; border-radius: 8px; margin: 0.8rem 0;">
+        <p><strong>ID da Sala:</strong> <span style="color: #00ffcc;">${roomId}</span></p>
+        <p><strong>Nome:</strong> ${roomName}</p>
+        <p><strong>Host:</strong> ${hostName}</p>
+        <p><strong>Senha:</strong> ${password ? "✅ Sim" : "❌ Não"}</p>
+      </div>
+      <div style="display: flex; gap: 0.8rem; margin-top: 1rem;">
+        <button onclick="copyRoomId('${roomId}')" 
+                style="padding: 0.6rem 1.2rem; background: #00cc66; color: white; border: none; border-radius: 4px; cursor: pointer; font-family: var(--font);">
+          📋 Copiar ID
+        </button>
+        <button onclick="startGameInRoom('${roomId}', '${hostName}')" 
+                style="padding: 0.6rem 1.2rem; background: #0077cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-family: var(--font);">
+          🎮 Iniciar Jogo
+        </button>
+      </div>
+      <div style="margin-top: 1rem; text-align: center; font-size: 0.9rem; color: #ffcc00;">
+        💡 Envie o ID da sala ao seu amigo para ele entrar.
+      </div>
+    `;
+  }
+
+  // === ENTRA EM SALA ===
+  function joinRoom() {
+    const roomId = prompt("Digite o ID da sala:", "");
+    if (!roomId || roomId.trim() === "") {
+      alert("ID da sala necessário.");
+      return;
+    }
+
+    const roomData = localStorage.getItem(`netplay_room_${roomId}`);
+    if (!roomData) {
+      alert("Sala não encontrada.");
+      return;
+    }
+
+    const room = JSON.parse(roomData);
+    if (room.players.length >= room.maxPlayers) {
+      alert("Sala cheia.");
+      return;
+    }
+
+    const playerName = localStorage.getItem("profile_name") || prompt("Digite seu nome:", "");
+    if (!playerName || playerName.trim() === "") {
+      alert("Nome necessário.");
+      return;
+    }
+
+    // Verifica senha
+    if (room.password && room.password !== "") {
+      const password = prompt("Senha da sala:", "");
+      if (password !== room.password) {
+        alert("Senha incorreta.");
+        return;
+      }
+    }
+
+    // Adiciona jogador à sala
+    room.players.push(playerName);
+    localStorage.setItem(`netplay_room_${roomId}`, JSON.stringify(room));
+
+    // Mostra tela de entrada
+    document.getElementById('section-content').innerHTML = `
+      <h4 style="margin: 1rem 0; color: #00ffcc;">✅ Entrou na Sala!</h4>
+      <div style="background: #111; padding: 1rem; border-radius: 8px; margin: 0.8rem 0;">
+        <p><strong>ID da Sala:</strong> <span style="color: #00ffcc;">${roomId}</span></p>
+        <p><strong>Nome:</strong> ${room.name}</p>
+        <p><strong>Host:</strong> ${room.host}</p>
+        <p><strong>Jogadores:</strong> ${room.players.join(", ")}</p>
+      </div>
+      <div style="display: flex; gap: 0.8rem; margin-top: 1rem;">
+        <button onclick="startGameInRoom('${roomId}', '${playerName}')" 
+                style="padding: 0.6rem 1.2rem; background: #0077cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-family: var(--font);">
+          🎮 Iniciar Jogo
+        </button>
+        <button onclick="goBackToConsoles()" 
+                style="padding: 0.6rem 1.2rem; background: #555; color: white; border: none; border-radius: 4px; cursor: pointer; font-family: var(--font);">
+          Voltar
+        </button>
+      </div>
+    `;
+  }
+
+  // === COPIA ID DA SALA ===
+  function copyRoomId(roomId) {
+    navigator.clipboard.writeText(roomId)
+      .then(() => {
+        alert(`✅ ID copiado: ${roomId}`);
+      })
+      .catch(() => {
+        alert(`❌ Falha ao copiar. Use manualmente: ${roomId}`);
+      });
+  }
+
+  // === INICIA O JOGO NA SALA ===
+  function startGameInRoom(roomId, playerName) {
+    // Carrega lista de jogos
+    const games = [
+      { name: "Super Mario World", console: "snes", url: "roms/snes/smw.smc" },
+      { name: "Donkey Kong Country", console: "snes", url: "roms/snes/dkc.smc" },
+      { name: "Sonic the Hedgehog", console: "segaMD", url: "roms/genesis/sonic.md" },
+      { name: "Street Fighter II", console: "arcade", url: "roms/mame/sf2.zip" }
+    ];
+
+    let html = `<h4 style="margin: 1rem 0; color: #00ffcc;">🎮 Escolha um jogo para jogar com ${playerName}:</h4>`;
+    html += `<ul class="game-list">`;
+    games.forEach(game => {
+      html += `<li onclick="launchGameInRoom('${game.name}', '${game.console}', '${game.url}', '${roomId}', '${playerName}')">
+        ${game.name} (${game.console.toUpperCase()})
+      </li>`;
+    });
+    html += `</ul>`;
+
+    document.getElementById('section-content').innerHTML = html;
+  }
+
+  // === LANÇA O JOGO NA SALA ===
+  function launchGameInRoom(gameName, consoleName, romUrl, roomId, playerName) {
+    // Configura Netplay
+    window.EJS_gameID = btoa(gameName + consoleName);
+    window.EJS_oldCores = true;
+
+    // Esconde menu principal
+    document.querySelector('.menu').style.display = 'none';
+    document.querySelector('.content').style.display = 'none';
+
+    // Tela de carregamento
+    const displayDiv = document.getElementById('display');
+    displayDiv.style.display = 'flex';
+    document.getElementById('loading-content').innerHTML = `
+      <div style="color:#00ffcc; font-family:var(--font); text-align:center; font-size:1.1rem;">
+        🕹️ ${gameName}<br>
+        <span style="font-size:0.9rem;">Conectando como ${playerName}...</span>
+      </div>
+    `;
+
+    // Configura emulador
+    window.EJS_player = "#game";
+    window.EJS_gameName = gameName;
+    window.EJS_gameUrl = romUrl;
+    window.EJS_core = consoleName;
+    window.EJS_pathtodata = "data/";
+    window.EJS_startOnLoaded = true;
+
+    // Inicia
+    function startEmulator() {
+      document.getElementById('display').style.display = 'none';
+      document.getElementById('game').style.display = 'block';
+
+      if (typeof EJS_load === 'function') {
+        EJS_load();
+      } else {
+        const script = document.createElement('script');
+        script.src = "data/loader.js";
+        script.onload = () => EJS_load();
+        document.body.appendChild(script);
+      }
+
+      // Mostra notificação de conexão
+      setTimeout(() => {
+        const notif = document.createElement('div');
+        notif.innerHTML = `
+          <div style="
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #111;
+            border: 2px solid #00ffcc;
+            padding: 1rem;
+            border-radius: 8px;
+            z-index: 10000;
+            font-family: var(--font);
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.4);
+          ">
+            <h4 style="margin:0 0 0.8rem; color:#00ffcc;">🤝 Conectado!</h4>
+            <p style="margin:0.5rem 0; font-size:1rem;">
+              🎮 ${playerName}<br>
+              <span style="font-size:0.9rem;">Você está jogando com outros jogadores.</span>
+            </p>
+            <button onclick="this.parentElement.remove()" 
+                    style="padding:0.4rem 0.8rem; background:#555; color:white; border:none; border-radius:3px; cursor:pointer;">
+              Fechar
+            </button>
+          </div>
+        `;
+        document.body.appendChild(notif);
+      }, 3000);
+    }
+
+    startEmulator();
+  }
+
+  // === VOLTA AO MENU DE CONSOLES ===
+  function goBackToConsoles() {
+    if (typeof loadSection === 'function') {
+      loadSection('consoles');
+    } else {
+      location.reload();
+    }
+  }
+</script>
